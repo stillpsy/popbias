@@ -272,7 +272,7 @@ for epoch in range(args.epochs):
 			pos2_scores, neg1_scores = model(user, pos2, neg1)
             
 			acc_loss = - (pos1_scores - neg1_scores).sigmoid().log().mean()/4 - (pos2_scores - neg1_scores).sigmoid().log().mean()/4            
-			pop_loss +=  -(1 -(pos1_scores - pos2_scores).abs().tanh() ).log().mean()/2             
+			pop_loss =  -(1 -(pos1_scores - pos2_scores).abs().tanh() ).log().mean()/2             
 			loss = acc_loss*acc_w + pop_loss*pop_w                     
             
 			if args.reg == 'yes':                                                        
