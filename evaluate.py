@@ -62,7 +62,7 @@ def metrics_custom_new_bpr(model, test_data, top_k, sid_pop_total, user_num):
 	final_df = pd.concat([pos_score_final, neg_score_final], axis = 1) # test_pos_item_num x 101
 	final_df.columns = list(range(101))        
 	rank_list = final_df.iloc[:, 0:(top_k+1)]
-	rank_score = rank_list.rank(1, ascending=False, method='average').iloc[:,0].values
+	rank_score = rank_list.rank(1, ascending=False, method='max').iloc[:,0].values
 	hits = (rank_score < (top_k + 1))*1
 	ndcgs = hits*np.reciprocal(np.log2(rank_score+1))    
 
@@ -129,7 +129,7 @@ def metrics_graph_bpr(model, test_data, top_k, sid_pop_total, user_num):
 	final_df = pd.concat([pos_score_final, neg_score_final], axis = 1) # test_pos_item_num x 101
 	final_df.columns = list(range(101))        
 	rank_list = final_df.iloc[:, 0:(top_k+1)]
-	rank_score = rank_list.rank(1, ascending=False, method='average').iloc[:,0].values
+	rank_score = rank_list.rank(1, ascending=False, method='max').iloc[:,0].values
 	hits = (rank_score < (top_k + 1))*1
 	ndcgs = hits*np.reciprocal(np.log2(rank_score+1))    
 
