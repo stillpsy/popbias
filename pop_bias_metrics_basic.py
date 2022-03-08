@@ -58,7 +58,7 @@ def pred_item_rank(model_here, test_data):
     model_here.cpu()    
     data2['pred'] = predictions_list
     
-    user_item_rank = data2.groupby('uid')['pred'].rank('min', ascending = False)
+    user_item_rank = data2.groupby('uid')['pred'].rank('average', ascending = False)
     data2['user_item_rank'] = user_item_rank.values - 1
     
     user_count = data2.groupby('uid')['pred'].count().reset_index()
@@ -246,11 +246,11 @@ def pred_item_rankdist(model_here, test_data):
     model_here.cpu()
     data['pred'] = predictions_list
     
-    user_item_pop_rank = data.groupby('uid')['sid'].rank('min', ascending = True)
+    user_item_pop_rank = data.groupby('uid')['sid'].rank('average', ascending = True)
     user_item_pop_rank = user_item_pop_rank - 1
     data['user_item_pop_rank'] = user_item_pop_rank
     
-    user_item_score_rank = data.groupby('uid')['pred'].rank('min', ascending = False)
+    user_item_score_rank = data.groupby('uid')['pred'].rank('average', ascending = False)
     user_item_score_rank = user_item_score_rank
     data['user_item_score_rank'] = user_item_score_rank
     
