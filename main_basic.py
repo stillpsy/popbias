@@ -91,7 +91,7 @@ parser.add_argument("--burnin",
 	help="yes, no")
 parser.add_argument("--reg", 
 	type=str,
-	default='error',  
+	default='no',  
 	help="yes, no")
 
 

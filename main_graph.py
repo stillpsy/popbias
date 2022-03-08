@@ -103,7 +103,7 @@ parser.add_argument("--model",
 	help="NGCF, LightGCN")
 parser.add_argument("--reg", 
 	type=str,
-	default='error',  
+	default='no',  
 	help="yes, no")
 
 
