@@ -169,7 +169,7 @@ class BPRData(data.Dataset):
 
 	def get_data(self, dataset, current_epoch):
 		import pickle
-		with open(f'./data/final_{dataset}/train_samples_{current_epoch}', 'rb') as fp:
+		with open(f'./data/final_{dataset}/train_samples/train_samples_{current_epoch}', 'rb') as fp:
 			b = pickle.load(fp)
 			self.features_fill = b            
             
