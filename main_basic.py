@@ -315,7 +315,10 @@ for epoch in range(args.epochs):
 			optimizer.step()                  
 
 	elif args.sample == 'pearson':
-		for user, pos, neg in train_loader:    
+		for user, pos1, pos2, neg1, neg2 in train_loader:    
+			pos, neg = pos1, neg1            
+			_, _ = pos2, neg2            
+
 			user = user.cuda()
 			pos = pos.cuda()
 			neg = neg.cuda()
