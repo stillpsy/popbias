@@ -16,8 +16,6 @@ def pred_item_rank(model_here, test_data):
     data2['uid'] = data2['uid'].apply(lambda x : int(x))
     data2['sid'] = data2['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 하나밖에 없는 item 제거
-    # quantile 이 다 0으로 예측될 것이기 때문
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 1].index
     data2 = data2[data2.uid.isin(filter_users)]
     data2 = data2.reset_index()[['uid', 'sid']]
@@ -82,7 +80,6 @@ def pred_item_score(model_here, test_data):
     data['uid'] = data['uid'].apply(lambda x : int(x))
     data['sid'] = data['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
     filter_users = data.uid.value_counts()[data.uid.value_counts() > 1].index
     data = data[data.uid.isin(filter_users)]
     data = data.reset_index()[['uid', 'sid']]
@@ -136,8 +133,6 @@ def pred_item_stdscore(model_here, test_data):
     data['uid'] = data['uid'].apply(lambda x : int(x))
     data['sid'] = data['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
-    # value가 1이면 std deviation이 계산 안되기 때문
     filter_users = data.uid.value_counts()[data.uid.value_counts() > 1].index
     data = data[data.uid.isin(filter_users)]
     data = data.reset_index()[['uid', 'sid']]
@@ -197,10 +192,6 @@ def pred_item_rankdist(model_here, test_data):
     data['uid'] = data['uid'].apply(lambda x : int(x))
     data['sid'] = data['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 4밖에 안되는 user들을 먼저 제거해야함.
-    # 4 이하면 quantile 예측이 너무 극단적일 수 있기 때문
-    # ex : rate 한 positive item이 하나밖에 없다
-    # 이 item의 순위(quantile)은 무조건 0.0 으로 계산됨    
     filter_users = data.uid.value_counts()[data.uid.value_counts() > 4].index
     data = data[data.uid.isin(filter_users)]
     data = data.reset_index()[['uid', 'sid']]
@@ -277,7 +268,6 @@ def raw_pred_score(model_here, test_data):
     data2['uid'] = data2['uid'].apply(lambda x : int(x))
     data2['sid'] = data2['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 1].index
     data2 = data2[data2.uid.isin(filter_users)]
     if 'type' in data2.columns:
@@ -326,10 +316,7 @@ def raw_pred_score(model_here, test_data):
 
 
 def uPO(model_here, without_neg_data):
-    # https://www.statology.org/pandas-groupby-correlation/
-    # https://pandas.pydata.org/docs/reference/api/pandas.core.groupby.DataFrameGroupBy.corr.html
-    
-    # for 문 돌려서 해야되나. 너무 귀찮은데
+
     data2 = without_neg_data
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 3].index
     data2 = data2[data2.uid.isin(filter_users)]
@@ -371,7 +358,6 @@ def pcc_train(model_here, train_data, sid_pop, item_num):
     data2['uid'] = data2['uid'].apply(lambda x : int(x))
     data2['sid'] = data2['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 1].index
     data2 = data2[data2.uid.isin(filter_users)]
     data2 = data2.reset_index()[['uid', 'sid']]
@@ -438,13 +424,12 @@ def pcc_train(model_here, train_data, sid_pop, item_num):
     
     X = item_mean_scores[user_labels]
     Y = item_pop[user_labels]
-    pcc = ((X - X.mean())*(Y - Y.mean())).sum() / ((X - X.mean())*(X- X.mean())).sum().sqrt() / ((Y - Y.mean())*(Y- Y.mean())).sum().sqrt()
-    #pcc = torch.corrcoef(item_mean_scores[user_labels], item_pop[user_labels])[1,1]
+    #pcc = ((X - X.mean())*(Y - Y.mean())).sum() / ((X - X.mean())*(X- X.mean())).sum().sqrt() / ((Y - Y.mean())*(Y- Y.mean())).sum().sqrt()
+    pcc = torch.corrcoef(item_mean_scores[user_labels], item_pop[user_labels])[1,1]
     
     return pcc
     
     
-# test 데이터에서 pearson correlation coefficient 계산    
 def pcc_test(model_here, test_data, sid_pop, item_num):
     data2 = test_data
     

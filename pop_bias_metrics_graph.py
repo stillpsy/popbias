@@ -16,7 +16,6 @@ def pred_item_rank(model_here, test_data):
     data2['uid'] = data2['uid'].apply(lambda x : int(x))
     data2['sid'] = data2['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 3].index
     data2 = data2[data2.uid.isin(filter_users)]
     data2 = data2.reset_index()[['uid', 'sid']]
@@ -90,7 +89,6 @@ def pred_item_score(model_here, test_data):
     data['uid'] = data['uid'].apply(lambda x : int(x))
     data['sid'] = data['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
     filter_users = data.uid.value_counts()[data.uid.value_counts() > 1].index
     data = data[data.uid.isin(filter_users)]
     data = data.reset_index()[['uid', 'sid']]
@@ -153,7 +151,6 @@ def pred_item_stdscore(model_here, test_data):
     data['uid'] = data['uid'].apply(lambda x : int(x))
     data['sid'] = data['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
     filter_users = data.uid.value_counts()[data.uid.value_counts() > 1].index
     data = data[data.uid.isin(filter_users)]
     data = data.reset_index()[['uid', 'sid']]
@@ -222,7 +219,6 @@ def pred_item_rankdist(model_here, test_data):
     data['uid'] = data['uid'].apply(lambda x : int(x))
     data['sid'] = data['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
     filter_users = data.uid.value_counts()[data.uid.value_counts() > 4].index
     data = data[data.uid.isin(filter_users)]
     data = data.reset_index()[['uid', 'sid']]
@@ -303,7 +299,6 @@ def raw_pred_score(model_here, test_data):
     data2['uid'] = data2['uid'].apply(lambda x : int(x))
     data2['sid'] = data2['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 1].index
     data2 = data2[data2.uid.isin(filter_users)]
     if 'type' in data2.columns:
@@ -359,10 +354,7 @@ def raw_pred_score(model_here, test_data):
 
 
 def uPO(model_here, without_neg_data):
-    # https://www.statology.org/pandas-groupby-correlation/
-    # https://pandas.pydata.org/docs/reference/api/pandas.core.groupby.DataFrameGroupBy.corr.html
-    
-    # for 문 돌려서 해야되나. 너무 귀찮은데
+
     data2 = without_neg_data
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 3].index
     data2 = data2[data2.uid.isin(filter_users)]
@@ -398,11 +390,6 @@ def uPO(model_here, without_neg_data):
 
     
     return result2
-    
-    # 얘에 대해 column wise rank 를 내리고
-    # 어떻게 딱 groupby spearman correlation coefficnet 계산할 수 있으면 좋은데
-    # groupby correlation 하면 된다.
-
 
 
 
@@ -412,7 +399,6 @@ def pcc_train(model_here, train_data, sid_pop, item_num):
     data2['uid'] = data2['uid'].apply(lambda x : int(x))
     data2['sid'] = data2['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 3].index
     data2 = data2[data2.uid.isin(filter_users)]
     data2 = data2.reset_index()[['uid', 'sid']]
@@ -486,7 +472,8 @@ def pcc_train(model_here, train_data, sid_pop, item_num):
     
     X = item_mean_scores[user_labels]
     Y = item_pop[user_labels]
-    pcc = ((X - X.mean())*(Y - Y.mean())).sum() / ((X - X.mean())*(X- X.mean())).sum().sqrt() / ((Y - Y.mean())*(Y- Y.mean())).sum().sqrt()
+    #pcc = ((X - X.mean())*(Y - Y.mean())).sum() / ((X - X.mean())*(X- X.mean())).sum().sqrt() / ((Y - Y.mean())*(Y- Y.mean())).sum().sqrt()
+    pcc = torch.corrcoef(torch.stack([X,Y]))[0, 1]
     
     return pcc
     
@@ -498,7 +485,6 @@ def pcc_test(model_here, test_data, sid_pop, item_num):
     data2['uid'] = data2['uid'].apply(lambda x : int(x))
     data2['sid'] = data2['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 3].index
     data2 = data2[data2.uid.isin(filter_users)]
     data2 = data2.reset_index()[['uid', 'sid']]
