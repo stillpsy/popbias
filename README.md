@@ -60,13 +60,13 @@ We provide the analysis results in the **research notebook -** folders.
 
 # References
 
-For the code of MF, NCF model, we modified by the codes provided from the following repository.
+For the code of MF, NCF model, we modified by the codes provided from the following repository.    
 https://github.com/guoyang9/NCF
 
-For the NGCF, LightGCN model, we modified by the codes provided from the following repository.
+For the NGCF, LightGCN model, we modified by the codes provided from the following repository.    
 https://github.com/huangtinglin/NGCF-PyTorch
 
-For the implementation of the Bayesian Pairwise Ranking Loss and related dataset construction, we modified by the codes provided from the following repository.
+For the implementation of the Bayesian Pairwise Ranking Loss and related dataset construction, we modified by the codes provided from the following repository.    
 https://github.com/guoyang9/BPR-pytorch
 
 
