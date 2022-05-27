@@ -5,6 +5,11 @@ research submitted to recsys 2022
 Last updated 2022/05/27
 
 
+The repository will be continuously updated. Contact us for further questions or issues regarding the code.   
+
+Thank you.
+
+
 
 # 0. Preprocess data
 
@@ -92,6 +97,3 @@ https://github.com/guoyang9/BPR-pytorch
 $\phantom{a}$
 
 
-The repository will be continuously updated. Contact us for further questions or issues regarding the code.   
-
-Thank you.
