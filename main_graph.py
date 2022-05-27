@@ -83,8 +83,7 @@ parser.add_argument("--gpu",
 
 parser.add_argument("--dataset", 
 	type=str,
-	default="movielens",  
-	help="movielens, ciao, epinions, gowalla")
+	default="movielens")
 parser.add_argument("--sample", 
 	type=str,
 	default="none",  
