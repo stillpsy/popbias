@@ -42,10 +42,28 @@ For benchmark data experiments
 note, separate scripts are used for MF, NCF models, and NGCF, LightGCN models
 
 ```
-!python main_basic.py --model "[MF, NCF]" --dataset "[movielens, gowalla, goodreads, ciao] --sample "[none, pos2neg2, posneg, ipw, pd, macr, pearson]"
+!python main_basic.py --model "[MF, NCF]" --dataset "[movielens, gowalla, goodreads, ciao] --sample "[none, pos2neg2, posneg, ipw, pd, macr, pearson] --weight [ex 0.9]"
 
-!python main_graph.py --model "[NGCF, LightGCN]" --dataset "[movielens, gowalla, goodreads, ciao]" --sample "[none, pos2neg2, posneg, ipw, pd, macr, pearson]"
+!python main_graph.py --model "[NGCF, LightGCN]" --dataset "[movielens, gowalla, goodreads, ciao]" --sample "[none, pos2neg2, posneg, ipw, pd, macr, pearson] --weight 0.9"
 ```   
+
+Note the --sample none correspond to the baseline BPR loss and the --sample posneg correspons to the zerosum method.
+
+The --weight [] parameter controls the weight. It works differently for each method.
+
+For pos2neg2, posneg, it controls the weight ratio between the BPR loss term (accuracy loss) and the regularization term (pop loss).
+
+For instance, --sample posneg --weight 0.9 means the accuracy loss has 0.9/1.0 weight, and the popularity loss has 0.1/1.0 weight.
+
+For pearson method, the --weight [] controls the absolute weight of the pearson regularization term.
+
+The none, ipw method do not need the --weight term
+
+The hyperparameter of the macr method is tuned after training, hence the --weight method is not needed.
+
+For the pd method the --weight [] controls the popularity factor divided from the predicted item score.
+
+
 
 
 # 2. Results
