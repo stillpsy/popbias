@@ -1,5 +1,7 @@
 # popbias
 
+Countering Popularity Bias by Regularizing Score Differences
+
 research submitted to recsys 2022
 
 Last updated 2022/05/27
