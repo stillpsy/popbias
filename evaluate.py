@@ -29,14 +29,49 @@ def metrics_custom_new_bpr(model, test_data, top_k, sid_pop_total, user_num):
 	test_data['sid'] = test_data['sid'].apply(lambda x : int(x))    
 	test_users_num = len(test_data['uid'].unique())    
 
+	# 여기가 한번에 안 돌아가서 문제 같음., 특히 MLP 모델에서    
+	'''    
 	user = test_data.values[:, 0]
 	user = user.astype(np.int32)        
 	user = torch.from_numpy(user).cuda()
 	item = test_data.values[:, 1]
 	item = item.astype(np.int32)
 	item = torch.from_numpy(item).cuda()                          
-	predictions, _ = model(user, item, item)                          
+	predictions = model.forward_one_item(user, item)                              
 	test_data['pred'] = predictions.detach().cpu()
+	'''
+    
+	data_len = test_data.shape[0]
+	frac = 50
+	frac_user_num = int(data_len/frac)
+	predictions_list = []
+	model.eval()
+	model.cuda()
+    
+	predictions_list = [] 
+    
+	for itr in range(frac):
+		tmp = test_data.iloc[ (frac_user_num * itr) : (frac_user_num* (itr+1) ) ].values        
+		user = tmp[:, 0]
+		user = user.astype(np.int32)
+		user = torch.from_numpy(user).cuda()
+		item = tmp[:, 1]
+		item = item.astype(np.int32)        
+		item = torch.from_numpy(item).cuda()
+		predictions_tmp = model.forward_one_item(user, item)        
+		predictions_list += predictions_tmp.detach().cpu().tolist()
+	if itr+1 == frac:
+		tmp = test_data.iloc[ (frac_user_num * (itr+1)):].values        
+		user = tmp[:, 0]
+		user = user.astype(np.int32)
+		user = torch.from_numpy(user).cuda()
+		item = tmp[:, 1]
+		item = item.astype(np.int32)        
+		item = torch.from_numpy(item).cuda()
+		predictions_tmp = model.forward_one_item(user, item)        
+		predictions_list += predictions_tmp.detach().cpu().tolist()
+        
+	test_data['pred'] = predictions_list        
     
 	### compute ARP
 	pred_result_for_arp = test_data.sort_values(['pred'], ascending = False).groupby('uid').head(top_k)
@@ -61,11 +96,11 @@ def metrics_custom_new_bpr(model, test_data, top_k, sid_pop_total, user_num):
     
 	final_df = pd.concat([pos_score_final, neg_score_final], axis = 1) # test_pos_item_num x 101
 	final_df.columns = list(range(101))        
-	rank_list = final_df.iloc[:, 0:(top_k+1)]
+	rank_list = final_df.iloc[:, 0:(top_k+1)]    
 	rank_score = rank_list.rank(1, ascending=False, method='max').iloc[:,0].values
 	hits = (rank_score < (top_k + 1))*1
 	ndcgs = hits*np.reciprocal(np.log2(rank_score+1))    
-
+    
 	HR += hits.tolist()
 	NDCG += ndcgs.tolist()
 

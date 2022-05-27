@@ -16,7 +16,7 @@ import config
 import evaluate
 import data_utils
 
-from pop_bias_metrics_basic import pred_item_rank, pred_item_score, pred_item_stdscore, pred_item_rankdist, raw_pred_score, pcc_train, pcc_test, uPO
+from pop_bias_metrics_basic import pred_item_rank, pred_item_score, pred_item_stdscore, pred_item_rankdist, raw_pred_score, pcc_train, pcc_test, pcc_test_check, uPO
 import scipy.stats as stats
 from scipy.stats import skew
 
@@ -38,7 +38,7 @@ parser.add_argument("--batch_size",
 	help="batch size for training")
 parser.add_argument("--epochs", 
 	type=int,
-	default=15,  
+	default=20,  
 	help="training epoches")
 parser.add_argument("--top_k", 
 	type=int, 
@@ -134,9 +134,19 @@ if args.model == 'MLP':
 	model = model_basic.BPR(user_num, item_num, args.factor_num, args.num_layers, 
 						args.dropout, config.model, GMF_model, MLP_model)
 if args.model == 'MF':
-	model = model_basic.MF_BPR(user_num, item_num, args.factor_num, args.num_layers, 
+	if args.sample == 'macr':
+		model = model_basic.MF_MACR(user_num, item_num, args.factor_num, args.num_layers, 
+						args.dropout, config.model, GMF_model, MLP_model)      
+	else:        
+		model = model_basic.MF_BPR(user_num, item_num, args.factor_num, args.num_layers, 
 						args.dropout, config.model, GMF_model, MLP_model)
-    
+if args.model == 'NCF':
+	if args.sample == 'macr':
+		model = model_basic.NCF_MACR(user_num, item_num, args.factor_num, args.num_layers, 
+							args.dropout, config.model, GMF_model, MLP_model)    
+	else:        
+		model = model_basic.NCF(user_num, item_num, args.factor_num, args.num_layers, 
+							args.dropout, config.model, GMF_model, MLP_model)    
 
 model.cuda()
 optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -193,10 +203,46 @@ for epoch in range(args.epochs):
 				user_emb_w = model.embed_user_MLP.weight[user]        
 				pos_emb_w = model.embed_item_MLP.weight[pos]
 				neg_emb_w = model.embed_item_MLP.weight[neg]        
-				reg = (torch.norm(user_emb_w) ** 2 + torch.norm(pos_emb_w) ** 2 + torch.norm(neg_emb_w) ** 2)/3 / args.batch_size
+				reg = (torch.norm(user_emb_w) ** 2 + torch.norm(pos_emb_w)** 2  + torch.norm(neg_emb_w) ** 2)/3 / args.batch_size
 				loss += 1e-5*reg        
 			loss.backward()
 			optimizer.step()
+        
+        
+        
+	elif args.sample in ['pd']:
+		for user, pos1, pos2, neg1, neg2 in train_loader:    
+			pos, neg = pos1, neg1
+			_, _ = pos2, neg2                        
+            
+			user = user.cuda()
+			pos = pos.cuda()
+			neg = neg.cuda()
+			model.zero_grad()
+
+            
+			pos1_label = pos1.cpu().tolist()
+			neg1_label = neg1.cpu().tolist()
+			pos1_map = [sid_pop_train_dict[key] for key in pos1_label]
+			neg1_map = [sid_pop_train_dict[key] for key in neg1_label]
+            
+			pos1_weight = torch.from_numpy(np.array(pos1_map)).cuda()            
+			neg1_weight = torch.from_numpy(np.array(neg1_map)).cuda()            
+            
+			pos_scores, neg_scores = model(user, pos, neg)
+			m = nn.ELU()            
+			loss = - ( ( m(pos_scores)+1.0 )*pos1_weight**(acc_w) - (  m(neg_scores)+1.0 )*neg1_weight**(acc_w)  ).sigmoid().log().mean()
+			if args.reg == 'yes':        
+				user_emb_w = model.embed_user_MLP.weight[user]        
+				pos_emb_w = model.embed_item_MLP.weight[pos]
+				neg_emb_w = model.embed_item_MLP.weight[neg]        
+				reg = (torch.norm(user_emb_w) ** 2 + torch.norm(pos_emb_w)** 2  + torch.norm(neg_emb_w) ** 2)/3 / args.batch_size
+				loss += 1e-5*reg        
+			loss.backward()
+			optimizer.step()        
+                
+
+        
         
 	elif args.sample == 'pos2neg2':
 		for user, pos1, pos2, neg1, neg2 in train_loader:
@@ -227,35 +273,6 @@ for epoch in range(args.epochs):
 			loss.backward()
 			optimizer.step()            
 
-	elif sample == 'pos2neg2sum':
-		for user, pos1, pos2, neg1, neg2 in train_loader:  
-            
-			user = user.cuda()
-			pos1 = pos1.cuda()
-			pos2 = pos2.cuda()
-			neg1 = neg1.cuda()
-			neg2 = neg2.cuda()            
-
-			model.zero_grad()
-            
-			pos1_scores, neg1_scores = model(user, pos1, neg1)            
-			pos2_scores, neg2_scores = model(user, pos2, neg2)
-            
-			acc_loss = - (pos1_scores - neg1_scores).sigmoid().log().mean()/4 - (pos2_scores - neg2_scores).sigmoid().log().mean()/4            
-			pop_loss =  -(1 -(pos1_scores - pos2_scores).abs().tanh() ).log().mean()/8 -(1 -(neg1_scores - neg2_scores).abs().tanh() ).log().mean()/8  -(1 -(pos1_scores + neg1_scores).abs().tanh() ).log().mean()/8 -(1 -(pos2_scores + neg2_scores).abs().tanh() ).log().mean()/8                 
-			loss = acc_loss*acc_w + pop_loss*pop_w
-            
-			if args.reg == 'yes':                                            
-				user_emb_w = model.embed_user_MLP.weight[user]        
-				pos1_emb_w = model.embed_item_MLP.weight[pos1]
-				pos2_emb_w = model.embed_item_MLP.weight[pos2]            
-				neg1_emb_w = model.embed_item_MLP.weight[neg1]        
-				neg2_emb_w = model.embed_item_MLP.weight[neg2]               
-				reg = (torch.norm(user_emb_w) ** 2 + torch.norm(pos1_emb_w) ** 2 + torch.norm(neg1_emb_w) ** 2 + torch.norm(pos2_emb_w) ** 2 + torch.norm(neg2_emb_w) ** 2)/5 / args.batch_size
-				loss += 1e-5*reg        
-			loss.backward()
-			optimizer.step()            
-            
         
 	elif args.sample == 'pos2':
 		for user, pos1, pos2, neg1, neg2 in train_loader:    
@@ -285,7 +302,6 @@ for epoch in range(args.epochs):
 			loss.backward()
 			optimizer.step()                    
 
-
 	elif args.sample == 'neg2':
 		for user, pos1, pos2, neg1, neg2 in train_loader:    
 			_ = pos2            
@@ -313,12 +329,104 @@ for epoch in range(args.epochs):
 				loss += 1e-5*reg        
 			loss.backward()
 			optimizer.step()                  
+                        
+            
+	elif args.sample == 'ipw':
+		for user, pos1, pos2, neg1, neg2 in train_loader:  
+            
+			user = user.cuda()
+			pos1 = pos1.cuda()
+			pos2 = pos2.cuda()
+			neg1 = neg1.cuda()
+			neg2 = neg2.cuda()            
+
+			model.zero_grad()
+            
+			pos1_scores, neg1_scores = model(user, pos1, neg1)            
+			pos2_scores, neg2_scores = model(user, pos2, neg2)
+            
+			pos1_label = pos1.cpu().tolist()
+			pos2_label = pos2.cpu().tolist()           
+			neg1_label = neg1.cpu().tolist()
+			neg2_label = neg2.cpu().tolist()
+			pos1_map = [sid_pop_train_dict[key] for key in pos1_label]
+			pos2_map = [sid_pop_train_dict[key] for key in pos2_label]            
+			neg1_map = [sid_pop_train_dict[key] for key in neg1_label]
+			neg2_map = [sid_pop_train_dict[key] for key in neg2_label]            
+            
+			pos1_weight = torch.from_numpy(1/np.array(pos1_map)).cuda()            
+			pos2_weight = torch.from_numpy(1/np.array(pos2_map)).cuda()                        
+			neg1_weight = torch.from_numpy(1/np.array(neg1_map)).cuda()            
+			neg2_weight = torch.from_numpy(1/np.array(neg2_map)).cuda()                        
+            
+			pop_loss =  - (pos1_weight*(pos1_scores).sigmoid().log()).mean()/4 
+			- (pos2_weight*(pos2_scores).sigmoid().log()).mean()/4 
+			- (neg1_weight*(1-(neg1_scores).sigmoid()).log()).mean()/4 
+			- (neg2_weight*(1-(neg2_scores).sigmoid()).log()).mean()/4
+            
+			loss = pop_loss
+            
+            
+            
+			if args.reg == 'yes':                                            
+				user_emb_w = model.embed_user_MLP.weight[user]        
+				pos1_emb_w = model.embed_item_MLP.weight[pos1]
+				pos2_emb_w = model.embed_item_MLP.weight[pos2]            
+				neg1_emb_w = model.embed_item_MLP.weight[neg1]        
+				neg2_emb_w = model.embed_item_MLP.weight[neg2]               
+				reg = (torch.norm(user_emb_w) ** 2 + torch.norm(pos1_emb_w) ** 2 + torch.norm(neg1_emb_w) ** 2 + torch.norm(pos2_emb_w) ** 2 + torch.norm(neg2_emb_w) ** 2)/5 / args.batch_size
+				loss += 1e-5*reg        
+			loss.backward()
+			optimizer.step()               
+            
+
+	elif args.sample == 'macr':
+		for user, pos1, pos2, neg1, neg2 in train_loader:  
+            
+			user = user.cuda()
+			pos1 = pos1.cuda()
+			pos2 = pos2.cuda()
+			neg1 = neg1.cuda()
+			neg2 = neg2.cuda()            
+
+			model.zero_grad()
+            
+			pos1_scores, neg1_scores = model(user, pos1, neg1)            
+			pos2_scores, neg2_scores = model(user, pos2, neg2)
+            
+			loss1 =  - (pos1_scores.sigmoid()*model.macr_user(user).sigmoid()*model.macr_item(pos1).sigmoid()).log().mean()/4 
+			- (pos2_scores.sigmoid()*model.macr_user(user).sigmoid()*model.macr_item(pos2).sigmoid()).log().mean()/4 
+			- (1-( neg1_scores.sigmoid()*model.macr_user(user).sigmoid()*model.macr_item(neg1).sigmoid() )).log().mean()/4 
+			- (1-( neg2_scores.sigmoid()*model.macr_user(user).sigmoid()*model.macr_item(neg2).sigmoid()  )).log().mean()/4                
+			loss2 =  - (model.macr_item(pos1).sigmoid()).log().mean()/4 
+			- (model.macr_item(pos2).sigmoid()).log().mean()/4 
+			- (1- model.macr_item(neg1).sigmoid() ).log().mean()/4
+			- (1- model.macr_item(neg2).sigmoid() ).log().mean()/4            
+            
+			loss3 =  - (model.macr_user(user).sigmoid()).log().mean()/4 
+			- (model.macr_user(user).sigmoid()).log().mean()/4 
+			- (1- model.macr_user(user).sigmoid() ).log().mean()/4
+			- (1- model.macr_user(user).sigmoid() ).log().mean()/4            
+            
+			loss = loss1 + 0.0005*loss2 + 0.0005*loss3
+            
+            
+			if args.reg == 'yes':                                            
+				user_emb_w = model.embed_user_MLP.weight[user]        
+				pos1_emb_w = model.embed_item_MLP.weight[pos1]
+				pos2_emb_w = model.embed_item_MLP.weight[pos2]            
+				neg1_emb_w = model.embed_item_MLP.weight[neg1]        
+				neg2_emb_w = model.embed_item_MLP.weight[neg2]               
+				reg = (torch.norm(user_emb_w) ** 2 + torch.norm(pos1_emb_w) ** 2 + torch.norm(neg1_emb_w) ** 2 + torch.norm(pos2_emb_w) ** 2 + torch.norm(neg2_emb_w) ** 2)/5 / args.batch_size
+				loss += 1e-5*reg        
+			loss.backward()
+			optimizer.step()                  
+            
 
 	elif args.sample == 'pearson':
-		for user, pos1, pos2, neg1, neg2 in train_loader:    
+		for user, pos1, pos2, neg1, neg2  in train_loader:    
 			pos, neg = pos1, neg1            
 			_, _ = pos2, neg2            
-
 			user = user.cuda()
 			pos = pos.cuda()
 			neg = neg.cuda()
@@ -338,7 +446,7 @@ for epoch in range(args.epochs):
             
 		model.zero_grad()           
 		pcc = pcc_train(model, raw_train_data, sid_pop_train, item_num)           
-		loss = 100*pcc**2
+		loss = acc_w*(pcc**2)
 		loss.backward()
 		optimizer.step()        
             
@@ -346,18 +454,20 @@ for epoch in range(args.epochs):
 	model.eval()
 	print('entered val evaluated')    
 	HR, NDCG, ARP = evaluate.metrics_custom_new_bpr(model, val_data_with_neg, args.top_k, sid_pop_total, user_num)
-	PCC_TEST = pcc_test(model, val_data_without_neg, sid_pop_total, item_num).detach().cpu()    
+	#HR, NDCG, ARP = 0, 0, 0    
+	PCC_TEST = pcc_test(model, val_data_without_neg, sid_pop_total, item_num)  
+	#PCC_TEST2 = pcc_test_check(model, val_data_without_neg, sid_pop_total)
     
-	score = pred_item_score(model, val_data_without_neg)
-	SCC_score_test = stats.spearmanr(score.dropna()['sid'].values, score.dropna()['pred'].values)    
-	rank = pred_item_rank(model, val_data_without_neg)    
-	SCC_rank_test = stats.spearmanr(rank.dropna()['sid'].values, rank.dropna()['rank'].values)
+	score = pred_item_score(model, val_data_without_neg, sid_pop_total)
+	SCC_score_test = stats.spearmanr(score.dropna()['sid_pop_count'].values, score.dropna()['pred'].values)    
+	rank = pred_item_rank(model, val_data_without_neg, sid_pop_total)    
+	SCC_rank_test = stats.spearmanr(rank.dropna()['sid_pop_count'].values, rank.dropna()['rank'].values)
     
-	upo = uPO(model, val_data_without_neg)    
+	upo = uPO(model, val_data_without_neg, sid_pop_total)    
     
-	rankdist = pred_item_rankdist(model, val_data_without_neg)
-	mean_test = np.mean(rankdist.values)    
-	skew_test = skew(rankdist.values)
+	rankdist = pred_item_rankdist(model, val_data_without_neg, sid_pop_total)
+	mean_test = np.mean(rankdist[rankdist.notna()].values)    
+	skew_test = skew(rankdist[rankdist.notna()].values)
 
      
     
@@ -367,14 +477,15 @@ for epoch in range(args.epochs):
 			time.strftime("%H: %M: %S", time.gmtime(elapsed_time)))
 	print("HR: {:.3f}\tNDCG: {:.3f}\tARP: {:.3f}".format(np.mean(HR), np.mean(NDCG), np.mean(ARP)))
 
-	print('PCC_TEST : ', np.round(PCC_TEST, 3))    
+	print('PCC_TEST : ', np.round(PCC_TEST, 3))   
+	#print('PCC_TEST check : ', np.round(PCC_TEST2, 3))       
 	print('SCC_score_test : ', np.round(SCC_score_test[0], 3))        
 	print('SCC_rank_test : ', np.round(SCC_rank_test[0], 3))     
 	print('upo is :', np.round(upo, 3))            
 	print('mean_test : ', np.round(mean_test, 3))        
 	print('skew_test : ', np.round(skew_test, 3))        
 	print(' ')    
-	epoch_val_result = [args.batch_size, epoch, args.sample, args.weight, HR, NDCG, ARP, PCC_TEST.numpy(), SCC_score_test[0], SCC_rank_test[0], np.round(upo, 3), mean_test, skew_test]
+	epoch_val_result = [args.batch_size, epoch, args.sample, args.weight, HR, NDCG, ARP, PCC_TEST, SCC_score_test[0], SCC_rank_test[0], np.round(upo, 3), mean_test, skew_test]
 	val_results.append(epoch_val_result)    
 
 	if HR > best_hr:
@@ -383,8 +494,7 @@ for epoch in range(args.epochs):
 		if not os.path.exists(config.model_path):
 			os.mkdir(config.model_path)
 		torch.save(model, 
-			'{}{}_{}_{}.pth'.format(config.model_path,f'final_{args.dataset}_', f'{args.model}_{args.sample}', args.epochs))
-
+			'{}{}_{}_{}_{}.pth'.format(config.model_path,f'final_{args.dataset}_', f'{args.model}_{args.sample}', args.weight, args.epochs))
         
 
 print("End. Best epoch {:03d}: HR = {:.3f}, NDCG = {:.3f}, ARP = {:.3f}".format(
@@ -397,20 +507,22 @@ print(' ')
 print('entered test evaluated')    
 'HR, NDCG = evaluate.metrics(model, test_loader, args.top_k)'
 HR, NDCG, ARP = evaluate.metrics_custom_new_bpr(model, test_data_with_neg, args.top_k, sid_pop_total, user_num)
-PCC_TEST = pcc_test(model, test_data_without_neg, sid_pop_total, item_num).detach().cpu()    
+#HR, NDCG, ARP = 0, 0, 0
+PCC_TEST = pcc_test(model, test_data_without_neg, sid_pop_total, item_num)
+#PCC_TEST2 = pcc_test_check(model, test_data_without_neg, sid_pop_total)
     
-score = pred_item_score(model, test_data_without_neg)
-SCC_score_test = stats.spearmanr(score.dropna()['sid'].values, score.dropna()['pred'].values)    
-rank = pred_item_rank(model, test_data_without_neg)    
-SCC_rank_test = stats.spearmanr(rank.dropna()['sid'].values, rank.dropna()['rank'].values)
+score = pred_item_score(model, test_data_without_neg, sid_pop_total)
+SCC_score_test = stats.spearmanr(score.dropna()['sid_pop_count'].values, score.dropna()['pred'].values)    
+rank = pred_item_rank(model, test_data_without_neg, sid_pop_total)    
+SCC_rank_test = stats.spearmanr(rank.dropna()['sid_pop_count'].values, rank.dropna()['rank'].values)
 
-upo = uPO(model, test_data_without_neg)
+upo = uPO(model, test_data_without_neg, sid_pop_total)
 
-rankdist = pred_item_rankdist(model, test_data_without_neg)
-mean_test = np.mean(rankdist.values)    
-skew_test = skew(rankdist.values)
+rankdist = pred_item_rankdist(model, test_data_without_neg, sid_pop_total)
+mean_test = np.mean(rankdist[rankdist.notna()].values)    
+skew_test = skew(rankdist[rankdist.notna()].values)
 
-epoch_val_result = [args.batch_size, -1, args.sample, args.weight, HR, NDCG, ARP, PCC_TEST.numpy(), SCC_score_test[0], SCC_rank_test[0], np.round(upo,3), mean_test, skew_test]
+epoch_val_result = [args.batch_size, -1, args.sample, args.weight, HR, NDCG, ARP, PCC_TEST, SCC_score_test[0], SCC_rank_test[0], np.round(upo,3), mean_test, skew_test]
 val_results.append(epoch_val_result)
 
 experiment_results = pd.DataFrame(val_results)
