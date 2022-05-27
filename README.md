@@ -2,6 +2,8 @@
 
 research submitted to recsys 2022
 
+Last updated 2022/05/27
+
 
 
 # 0. Preprocess data
@@ -72,8 +74,7 @@ The trained MF, NCF, NGCF, LightGCN pytorch models are in the **models** folder.
 
 The csv file of the training result is in the **experiments** folder.   
 
-We provide the analysis results in the **research notebook -** folders.   
-
+We provide the analysis results in the **research notebook -** folders. The analysis result for the **movielens** and **synthetic data** is provided.
 
 
 # References
