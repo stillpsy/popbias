@@ -40,9 +40,9 @@ For synthetic experiments - augmented data
 For benchmark data experiments
 
 ```
-!python main_basic.py --model "[MF, NCF]" --dataset "[movielens, gowalla, goodreads, ciao]"
+!python main_basic.py --model "[MF, NCF]" --dataset "[movielens, gowalla, goodreads, ciao] --sample "[none, pos2neg2, posneg, ipw, pd, macr, pearson]"
 
-!python main_graph.py --model "[NGCF, LightGCN]" --dataset "[movielens, gowalla, goodreads, ciao]"
+!python main_graph.py --model "[NGCF, LightGCN]" --dataset "[movielens, gowalla, goodreads, ciao]" --sample "[none, pos2neg2, posneg, ipw, pd, macr, pearson]"
 ```
 
 
