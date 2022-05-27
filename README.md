@@ -40,13 +40,13 @@ ciao : https://www.cse.msu.edu/~tangjili/datasetcode/truststudy.htm
 For synthetic experiments
 
 ```
-!python main_basic_synthetic.py --dataset synthetic3 --model MF --sample "[none, pos2neg2, posneg, ipw, pd, pearson]"
+!python main_basic_synthetic.py --dataset synthetic3 --model MF --sample "[none, pos2neg2, posneg, ipw, pd, pearson] --weight [ex 0.8]"
 ```
 
 For synthetic experiments - augmented data
 
 ```
-!python main_basic_synthetic.py --dataset synthetic4 --model MF --sample "[none, pos2neg2, posneg, ipw, pd, pearson]"
+!python main_basic_synthetic.py --dataset synthetic4 --model MF --sample "[none, pos2neg2, posneg, ipw, pd, pearson] --weight [ex 0.8]"
 ```
 
 For benchmark data experiments
