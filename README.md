@@ -21,9 +21,14 @@ The **train_samples** is generated so that the training data for each epoch is d
 
 Due to constraint in size, we only provide the rawdata for the **movielens**, and the **synthetic data**.
 
-However, we provide the download link for the **gowalla, goodreads, ciao dataset**.
+However, we provide the link for the **gowalla, goodreads, ciao dataset**.
 
-The preprocessing steps for the **gowalla, goodreads, ciao** dataset is equivalent as that of **movielens**.   
+The preprocessing steps for the **gowalla, goodreads, ciao** dataset is equivalent as that of **movielens**. Make a folder and copy the 3 data processing scripts of the movielens folder and run the scripts.
+
+Data link    
+gowalla : .    
+goodreads : .    
+ciao : .     
 
 
 
