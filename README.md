@@ -23,12 +23,12 @@ Due to constraint in size, we only provide the rawdata for the **movielens**, an
 
 However, we provide the link for the **gowalla, goodreads, ciao dataset**.
 
-The preprocessing steps for the **gowalla, goodreads, ciao** dataset is equivalent as that of **movielens**. Make a folder and copy the 3 data processing scripts of the movielens folder and run the scripts.
+The preprocessing steps for the **gowalla, goodreads, ciao** dataset is equivalent as that of **movielens**. Make a folder and copy the 3 data processing scripts of the movielens folder and run the scripts. For the **goodreads** dataset we used the comics & graphic subset.
 
 Data link    
-gowalla : .    
-goodreads : .    
-ciao : .     
+gowalla : https://snap.stanford.edu/data/loc-gowalla.html    
+goodreads : https://sites.google.com/eng.ucsd.edu/ucsdbookgraph/home       
+ciao : https://www.cse.msu.edu/~tangjili/datasetcode/truststudy.htm     
 
 
 
