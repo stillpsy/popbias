@@ -52,8 +52,7 @@ The trained MF, NCF, NGCF, LightGCN pytorch models are in the **models** folder.
 
 The csv file of the training result is in the **experiments** folder.   
 
-
-# 3. We provide the analysis results in the **research notebook -** folders.
+We provide the analysis results in the **research notebook -** folders.   
 
 
 The repository will be continuously updated. Contact us for further questions regarding the code.   
