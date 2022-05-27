@@ -351,7 +351,7 @@ def uPO(model_here, without_neg_data):
 
 
 
-# pearson correlation coefficient 계산
+# pearson correlation coefficient computation
 def pcc_train(model_here, train_data, sid_pop, item_num):
     data2 = train_data
     
@@ -436,7 +436,7 @@ def pcc_test(model_here, test_data, sid_pop, item_num):
     data2['uid'] = data2['uid'].apply(lambda x : int(x))
     data2['sid'] = data2['sid'].apply(lambda x : int(x))    
         
-    # 먼저 value가 1밖에 안되는 user들을 먼저 제거해야함.
+    # filter users with more than 1 test positive items
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 1].index
     data2 = data2[data2.uid.isin(filter_users)]
     data2 = data2.reset_index()[['uid', 'sid']]
