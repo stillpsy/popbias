@@ -27,20 +27,23 @@ The preprocessing steps for the **gowalla, goodreads, ciao** dataset is equivale
 
 For synthetic experiments
 
-python main_basic_synthetic.py --dataset synthetic3 --model MF --sample "[none, pos2neg2, posneg, ipw, pd, pearson]"
-
+```
+!python main_basic_synthetic.py --dataset synthetic3 --model MF --sample "[none, pos2neg2, posneg, ipw, pd, pearson]"
+```
 
 For synthetic experiments - augmented data
 
-python main_basic_synthetic.py --dataset synthetic4 --model MF --sample "[none, pos2neg2, posneg, ipw, pd, pearson]"
-
+```
+!python main_basic_synthetic.py --dataset synthetic4 --model MF --sample "[none, pos2neg2, posneg, ipw, pd, pearson]"
+```
 
 For benchmark data experiments
 
-python main_basic.py --model "[MF, NCF]" --dataset "[movielens, gowalla, goodreads, ciao]"
+```
+!python main_basic.py --model "[MF, NCF]" --dataset "[movielens, gowalla, goodreads, ciao]"
 
-python main_graph.py --model "[NGCF, LightGCN]" --dataset "[movielens, gowalla, goodreads, ciao]"
-
+!python main_graph.py --model "[NGCF, LightGCN]" --dataset "[movielens, gowalla, goodreads, ciao]"
+```
 
 
 2. Results
