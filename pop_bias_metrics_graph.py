@@ -458,7 +458,6 @@ def uPO(model_here, without_neg_data, sid_pop_total):
     # https://www.statology.org/pandas-groupby-correlation/
     # https://pandas.pydata.org/docs/reference/api/pandas.core.groupby.DataFrameGroupBy.corr.html
     
-    # for 문 돌려서 해야되나. 너무 귀찮은데
     data2 = without_neg_data
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 3].index
     data2 = data2[data2.uid.isin(filter_users)]
@@ -524,10 +523,6 @@ def uPO(model_here, without_neg_data, sid_pop_total):
     
     return result2
     
-    # 얘에 대해 column wise rank 를 내리고
-    # 어떻게 딱 groupby spearman correlation coefficnet 계산할 수 있으면 좋은데
-    # groupby correlation 하면 된다.
-
 
 
 
