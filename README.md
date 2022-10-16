@@ -4,7 +4,9 @@
 
 research submitted to recsys 2022
 
-Last updated 2022/05/27
+Last updated 
+- 2022/10/16 (removed unnecessary comments, footnotes)
+- 2022/05/27 (initial code release)
 
 
 The repository will be continuously updated. Contact us for further questions or issues regarding the code.   
