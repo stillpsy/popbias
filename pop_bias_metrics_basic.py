@@ -512,7 +512,6 @@ def uPO(model_here, without_neg_data, sid_pop_total):
     # https://www.statology.org/pandas-groupby-correlation/
     # https://pandas.pydata.org/docs/reference/api/pandas.core.groupby.DataFrameGroupBy.corr.html
     
-    # for 문 돌려서 해야되나. 너무 귀찮은데
     data2 = without_neg_data
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 3].index
     data2 = data2[data2.uid.isin(filter_users)]
@@ -583,8 +582,6 @@ def uPO(model_here, without_neg_data, sid_pop_total):
 
 # pearson correlation coefficient 계산
 
-# 생각해보니까. user별로 sid 만 해가지고 item index에 대해서는 correlation coefficient 하는거가 낫겟다
-
 def pcc_train(model_here, train_data, sid_pop, item_num):
     data2 = train_data
     
@@ -640,9 +637,7 @@ def pcc_train(model_here, train_data, sid_pop, item_num):
     
     X = values
     Y = sid_pop_count # item pop
-    
-    #pcc = torch.corrcoef([X, Y])[0, 1]
-    
+        
     pcc = ((X - X.mean())*(Y - Y.mean())).sum() / ((X - X.mean())*(X- X.mean())).sum().sqrt() / ((Y - Y.mean())*(Y- Y.mean())).sum().sqrt()    
     
     return pcc
@@ -717,8 +712,6 @@ def pcc_test_check(model_here, without_neg_data, sid_pop_total):
     # https://www.statology.org/pandas-groupby-correlation/
     # https://pandas.pydata.org/docs/reference/api/pandas.core.groupby.DataFrameGroupBy.corr.html
     
-        
-    # for 문 돌려서 해야되나. 너무 귀찮은데
     data2 = without_neg_data
     filter_users = data2.uid.value_counts()[data2.uid.value_counts() > 1].index
     data2 = data2[data2.uid.isin(filter_users)]
