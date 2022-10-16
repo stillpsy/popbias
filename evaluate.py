@@ -28,18 +28,6 @@ def metrics_custom_new_bpr(model, test_data, top_k, sid_pop_total, user_num):
 	test_data['uid'] = test_data['uid'].apply(lambda x : int(x))
 	test_data['sid'] = test_data['sid'].apply(lambda x : int(x))    
 	test_users_num = len(test_data['uid'].unique())    
-
-	# 여기가 한번에 안 돌아가서 문제 같음., 특히 MLP 모델에서    
-	'''    
-	user = test_data.values[:, 0]
-	user = user.astype(np.int32)        
-	user = torch.from_numpy(user).cuda()
-	item = test_data.values[:, 1]
-	item = item.astype(np.int32)
-	item = torch.from_numpy(item).cuda()                          
-	predictions = model.forward_one_item(user, item)                              
-	test_data['pred'] = predictions.detach().cpu()
-	'''
     
 	data_len = test_data.shape[0]
 	frac = 50
