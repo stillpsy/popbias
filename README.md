@@ -8,8 +8,7 @@ Last updated
 - 2022/10/16 (removed unnecessary comments, footnotes)
 - 2022/05/27 (initial code release)
 
-
-The repository will be continuously updated. Contact us for further questions or issues regarding the code.   
+As of 2022/12/13, the repository will not be further updated unless needed otherwise. Contact us for further questions or issues regarding the code.
 
 Thank you.
 
